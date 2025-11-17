@@ -2,6 +2,19 @@
 #include <vector>
 using namespace std;
 
+void banker() {
+    
+}
+
+bool safetyCheck() {
+
+}
+
+bool resourceRequest() {
+
+}
+
+
 
 int main() {
     char dummy; //dummy value for unnecessary chars
