@@ -1,17 +1,55 @@
+//TODO: Finish implementing safetyCheck algorithm and start resourceRequest algorithm
+//TODO: Figure out how to pass 2d array as parameter into banker's functions, or just give up and use vectors.
+
+
 #include <iostream>
 #include <vector>
 using namespace std;
 
-void banker() {
+void banker(int requestNum, int processNum, int resourceNum, int available[], int max, int alloc) {
+    int need[processNum][resourceNum];
+
+    for(int i = 0; i < processNum; i++) {
+        for(int j = 0; j < resourceNum; j++) {
+
+        }
+    }
+    
+    if(safetyCheck(processNum, resourceNum, available)) {
+        cout << "Before granting the request of P" 
+        << requestNum << ", the system is in a safe state." << endl;
+
+        cout << "Simulating granting P" << requestNum << "'s request.";
+        
+        resourceRequest(); 
+    }
+
+    else {
+        cout << "The current system is in unsafe state." << endl;
+    }
+}
+
+bool safetyCheck(int processNum, int resourceNum, int available[]) {
+    bool safeState = true;
+    bool finishedProcesses[processNum];
+    for(bool i : finishedProcesses) {
+        i = false;
+    }
+    int work[resourceNum];
+    for(int i = 0; i < resourceNum; i++) {
+        work[i] = available[i];
+    }
+
+    for(int i = 0; i < processNum; i++) {
+        for(int j = 0; j < resourceNum; j++) {
+
+        }
+    }
     
 }
 
-bool safetyCheck() {
-
-}
-
 bool resourceRequest() {
-
+    cout << "development still in progress" << endl;
 }
 
 
@@ -82,6 +120,8 @@ int main() {
     for(int i = 0; i < resourceNum; i++) { 
         cin >> request[i];
     }
+
+    banker(requestNum, processNum, resourceNum, available, max, alloc);
 
     return 0;
 }
