@@ -1,36 +1,11 @@
 //TODO: Finish implementing safetyCheck algorithm and start resourceRequest algorithm
-//TODO: Figure out how to pass 2d array as parameter into banker's functions, or just give up and use vectors.
-
 
 #include <iostream>
 #include <vector>
 using namespace std;
 
-void banker(int requestNum, int processNum, int resourceNum, int available[], int max, int alloc) {
-    int need[processNum][resourceNum];
-
-    for(int i = 0; i < processNum; i++) {
-        for(int j = 0; j < resourceNum; j++) {
-
-        }
-    }
-    
-    if(safetyCheck(processNum, resourceNum, available)) {
-        cout << "Before granting the request of P" 
-        << requestNum << ", the system is in a safe state." << endl;
-
-        cout << "Simulating granting P" << requestNum << "'s request.";
-        
-        resourceRequest(); 
-    }
-
-    else {
-        cout << "The current system is in unsafe state." << endl;
-    }
-}
-
-bool safetyCheck(int processNum, int resourceNum, int available[]) {
-    bool safeState = true;
+bool safetyCheck(int processNum, int resourceNum, int available[], vector<vector<int>> max, vector<vector<int>> need) {
+    bool safeState = false;
     bool finishedProcesses[processNum];
     for(bool i : finishedProcesses) {
         i = false;
@@ -40,16 +15,98 @@ bool safetyCheck(int processNum, int resourceNum, int available[]) {
         work[i] = available[i];
     }
 
+    //Checks for processes that could be allocated resources.
+    //If there does not exist such a process, the safety check algorithm finishes execution and returns false
+    int availableProcess = 0;
     for(int i = 0; i < processNum; i++) {
-        for(int j = 0; j < resourceNum; j++) {
-
+        bool availableState = true;
+        if(!finishedProcesses[i]) {
+            for(int j = 0; j < resourceNum; j++) {
+                if(need[i][j] > work[j]) {
+                    availableState = false;
+                }
+                
+            }
         }
+        else availableState = false;
+        if(availableState) availableProcess++;
     }
-    
+    if(availableProcess == 0){
+        safeState = false;
+        return safeState;
+    }
+
+    //Iterates through all processes to allocate resources.
+    //If all processes are able to be allocated resources, the system is in a safe state
+    int i = 0;
+    while(!safeState) {
+        bool availableState = true;
+        for(int j = 0; j < resourceNum; j++) {
+            if(finishedProcesses[i] || need[i][j] > work[j]) {
+                availableState = false;
+            }
+        }
+        if(availableState) {
+            cout << "Process Available after Completion of process P" << i << ": ";
+            for(int j = 0; j < resourceNum; j++) {
+                work[j] += max[i][j];
+                cout << work[j] << " ";
+            }
+            cout << endl;
+            finishedProcesses[i] = true;
+        }
+        else {
+            cout << "Process: P" << i << " not available for resource allocation. move to next" << endl; 
+        }
+
+        int numFinished = 0;
+        for(int j = 0; j < processNum; j++) {
+            if(finishedProcesses[j]) numFinished++;
+        }
+        if(numFinished == processNum) {
+            safeState = true;
+            return safeState;
+        }
+
+        i++;
+        if(i > processNum-1) i = 0;
+    }
+
+    return safeState;
 }
 
 bool resourceRequest() {
     cout << "development still in progress" << endl;
+    return true;
+}
+
+void banker(int requestNum, int processNum, int resourceNum, int available[], vector<vector<int>> max, vector<vector<int>> alloc) {
+    vector<vector<int>> need(processNum, vector<int> (resourceNum, 0));
+
+
+    for(int i = 0; i < processNum; i++) {
+        for(int j = 0; j < resourceNum; j++) {
+            need[i][j] = max[i][j] - alloc[i][j];
+        }
+    }
+    
+    if(safetyCheck(processNum, resourceNum, available, max, need)) {
+        cout << "Before granting the request of P" 
+        << requestNum << ", the system is in a safe state." << endl;
+
+        cout << "Simulating granting P" << requestNum << "'s request." << endl;
+        
+        if(resourceRequest()) {
+            cout <<"P" << processNum << "'s request can be granted. The system will be in safe state.";
+        }
+        else {
+            cout <<"P" << processNum <<"s request cannot be granted. The system will be in unsafe state.";
+        }
+    }
+
+    else {
+        cout << "The current system is in unsafe state." << endl;
+    }
 }
 
 
@@ -85,7 +142,7 @@ int main() {
         cin >> dummy;
     }
 
-    int max[processNum][resourceNum]; //create matrix of max instances needed by each process
+    vector<vector<int>> max(processNum, vector<int> (resourceNum, 0)); //create matrix of max instances needed by each process
 
     //read max # of instances for each process
     for(int i = 0; i < processNum; i++) {
@@ -101,8 +158,8 @@ int main() {
     }
 
     //create matrix of resource instances allocated to processes at program start
-    int alloc[processNum][resourceNum];
-
+    vector<vector<int>> alloc(processNum, vector<int> (resourceNum, 0));
+    
     //read # of allocated instances for each process
     for(int i = 0; i < processNum; i++) {
         for(int j = 0; j < resourceNum; j++) {
