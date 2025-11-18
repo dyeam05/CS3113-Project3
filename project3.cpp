@@ -1,4 +1,4 @@
-//TODO: Finish implementing safetyCheck algorithm and start resourceRequest algorithm
+//TODO: Continue Testing and commenting. Submit project once comments are finished
 
 #include <iostream>
 #include <vector>
@@ -47,16 +47,16 @@ bool safetyCheck(int processNum, int resourceNum, int available[], vector<vector
             }
         }
         if(availableState) {
-            cout << "Process Available after Completion of process P" << i << ": ";
+            //cout << "Process Available after Completion of process P" << i << ": ";
             for(int j = 0; j < resourceNum; j++) {
                 work[j] += max[i][j];
-                cout << work[j] << " ";
+                //cout << work[j] << " ";
             }
-            cout << endl;
+            //cout << endl;
             finishedProcesses[i] = true;
         }
         else {
-            cout << "Process: P" << i << " not available for resource allocation. move to next" << endl; 
+            //cout << "Process: P" << i << " not available for resource allocation. move to next" << endl; 
         }
 
         int numFinished = 0;
@@ -75,12 +75,45 @@ bool safetyCheck(int processNum, int resourceNum, int available[], vector<vector
     return safeState;
 }
 
-bool resourceRequest() {
-    cout << "development still in progress" << endl;
-    return true;
+bool resourceRequest(int processNum, int resourceNum, int available[], vector<vector<int>> max, vector<vector<int>> need, int request[], int requestNum, vector<vector<int>> alloc) {
+    bool safeRequest = false;
+
+    for(int i = 0; i < resourceNum; i++) {
+        if(request[i] > available[i] || request[i] > need[requestNum][i]) {
+            safeRequest = false;
+            return safeRequest;
+        }
+    }
+
+    vector<vector<int>> newAlloc = alloc;
+    vector<vector<int>> newNeed = need;
+    int* newAvailable = available;
+
+
+    for(int i = 0; i < resourceNum; i++) {
+        newAvailable[i] -= request[i];
+        newAlloc[requestNum][i] += request[i];
+        newNeed[requestNum][i] -= request[i];
+
+    } 
+
+    cout << "New Need" << endl;
+    for(int i = 0; i < processNum; i++) {
+        for(int j = 0; j < resourceNum; j++) {
+            cout << newNeed[i][j] << " ";
+        }
+        cout << endl;
+    }
+
+    if(safetyCheck(processNum, resourceNum, newAvailable, max, newNeed)) {
+        safeRequest = true;
+        return safeRequest;
+    }
+
+    return safeRequest;
 }
 
-void banker(int requestNum, int processNum, int resourceNum, int available[], vector<vector<int>> max, vector<vector<int>> alloc) {
+void banker(int requestNum, int processNum, int resourceNum, int available[], vector<vector<int>> max, vector<vector<int>> alloc, int request[]) {
     vector<vector<int>> need(processNum, vector<int> (resourceNum, 0));
 
 
@@ -96,7 +129,7 @@ void banker(int requestNum, int processNum, int resourceNum, int available[], ve
 
         cout << "Simulating granting P" << requestNum << "'s request." << endl;
         
-        if(resourceRequest()) {
+        if(resourceRequest(processNum, resourceNum, available, max, need, request, requestNum, alloc)) {
             cout <<"P" << processNum << "'s request can be granted. The system will be in safe state.";
         }
         else {
@@ -178,7 +211,7 @@ int main() {
         cin >> request[i];
     }
 
-    banker(requestNum, processNum, resourceNum, available, max, alloc);
+    banker(requestNum, processNum, resourceNum, available, max, alloc, request);
 
     return 0;
 }
