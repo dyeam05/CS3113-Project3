@@ -1,9 +1,8 @@
-//TODO: Continue Testing and commenting. Submit project once comments are finished
-
 #include <iostream>
 #include <vector>
 using namespace std;
 
+//Checks whether the input system is in a safe state. Returns a boolean indicating safety of given system
 bool safetyCheck(int processNum, int resourceNum, int available[], vector<vector<int>> max, vector<vector<int>> need) {
     bool safeState = false;
     bool finishedProcesses[processNum];
@@ -31,6 +30,7 @@ bool safetyCheck(int processNum, int resourceNum, int available[], vector<vector
         else availableState = false;
         if(availableState) availableProcess++;
     }
+    //if no processes are found that can be safely allocated needed resources, then system is in an unsafe state.
     if(availableProcess == 0){
         safeState = false;
         return safeState;
@@ -59,6 +59,8 @@ bool safetyCheck(int processNum, int resourceNum, int available[], vector<vector
             //cout << "Process: P" << i << " not available for resource allocation. move to next" << endl; 
         }
 
+        //checks for finished processes. If all processes are finished, the system is in a safe state.
+        //Else, continue running algorithm.
         int numFinished = 0;
         for(int j = 0; j < processNum; j++) {
             if(finishedProcesses[j]) numFinished++;
@@ -68,6 +70,7 @@ bool safetyCheck(int processNum, int resourceNum, int available[], vector<vector
             return safeState;
         }
 
+        //increment to next process. Loop through processes if end is reached.
         i++;
         if(i > processNum-1) i = 0;
     }
@@ -75,9 +78,12 @@ bool safetyCheck(int processNum, int resourceNum, int available[], vector<vector
     return safeState;
 }
 
+//Adds an additional resource request from a specified process to a given system that is already deemed as safe.
 bool resourceRequest(int processNum, int resourceNum, int available[], vector<vector<int>> max, vector<vector<int>> need, int request[], int requestNum, vector<vector<int>> alloc) {
     bool safeRequest = false;
 
+    //checks if requested resources exceed available and needed resources for the process.
+    //if a requested resource type exceeds these conditions, the request is deemed unsafe
     for(int i = 0; i < resourceNum; i++) {
         if(request[i] > available[i] || request[i] > need[requestNum][i]) {
             safeRequest = false;
@@ -85,11 +91,13 @@ bool resourceRequest(int processNum, int resourceNum, int available[], vector<ve
         }
     }
 
+    //creates copies of alloc and need matrices, and available array
     vector<vector<int>> newAlloc = alloc;
     vector<vector<int>> newNeed = need;
     int* newAvailable = available;
 
 
+    //adds changes to system data structures to reflect request being added 
     for(int i = 0; i < resourceNum; i++) {
         newAvailable[i] -= request[i];
         newAlloc[requestNum][i] += request[i];
@@ -97,6 +105,7 @@ bool resourceRequest(int processNum, int resourceNum, int available[], vector<ve
 
     } 
 
+    //outputs the new need matrix after being updated with requested resource values
     cout << "New Need" << endl;
     for(int i = 0; i < processNum; i++) {
         for(int j = 0; j < resourceNum; j++) {
@@ -105,6 +114,9 @@ bool resourceRequest(int processNum, int resourceNum, int available[], vector<ve
         cout << endl;
     }
 
+    //runs the safetyCheck algorithm to ensure that updated system is in an updated state.
+    //If the updated system passes this check, the request is safe.
+    //Else, the request is deemed unsafe.
     if(safetyCheck(processNum, resourceNum, newAvailable, max, newNeed)) {
         safeRequest = true;
         return safeRequest;
@@ -116,19 +128,21 @@ bool resourceRequest(int processNum, int resourceNum, int available[], vector<ve
 void banker(int requestNum, int processNum, int resourceNum, int available[], vector<vector<int>> max, vector<vector<int>> alloc, int request[]) {
     vector<vector<int>> need(processNum, vector<int> (resourceNum, 0));
 
-
+    //creates max resource type matrix that will be passed to safetyCheck and resourceRequest
     for(int i = 0; i < processNum; i++) {
         for(int j = 0; j < resourceNum; j++) {
             need[i][j] = max[i][j] - alloc[i][j];
         }
     }
-    
+    //Uses safetyCheck function to check safety of the given system.
+    //Outputs the safety of the system to console. 
     if(safetyCheck(processNum, resourceNum, available, max, need)) {
         cout << "Before granting the request of P" 
         << requestNum << ", the system is in a safe state." << endl;
 
         cout << "Simulating granting P" << requestNum << "'s request." << endl;
         
+        //checks if the given resource request can be added to the system in a safe manner.
         if(resourceRequest(processNum, resourceNum, available, max, need, request, requestNum, alloc)) {
             cout <<"P" << processNum << "'s request can be granted. The system will be in safe state.";
         }
@@ -159,7 +173,7 @@ int main() {
     cin >> processNum;  // read # of proceses
 
     //Skip unnecessary char values for "available"
-    //REALLY FUCKING BAD. FIX HARDCODED NUMBERS LATER
+    //REALLY BAD. FIX HARDCODED NUMBERS LATER
     for(int i = 0; i < 9; i++) {
         cin >> dummy;
     }
