@@ -3,11 +3,11 @@
 using namespace std;
 
 //Checks whether the input system is in a safe state. Returns a boolean indicating safety of given system
-bool safetyCheck(int processNum, int resourceNum, int available[], vector<vector<int>> alloc, vector<vector<int>> need) {
+bool safetyCheck(int processNum, int resourceNum, int available[], vector<vector<int>> max, vector<vector<int>> need) {
     bool safeState = false;
     bool finishedProcesses[processNum];
-    for(int i = 0; i < processNum; i++) {
-        finishedProcesses[i] = false;
+    for(bool i : finishedProcesses) {
+        i = false;
     }
     int work[resourceNum];
     for(int i = 0; i < resourceNum; i++) {
@@ -36,35 +36,46 @@ bool safetyCheck(int processNum, int resourceNum, int available[], vector<vector
         return safeState;
     }
 
-    int finishedCount = 0;
+    //Iterates through all processes to allocate resources.
+    //If all processes are able to be allocated resources, the system is in a safe state
+    int i = 0;
+    while(!safeState) {
+        bool availableState = true;
+        for(int j = 0; j < resourceNum; j++) {
+            if(finishedProcesses[i] || need[i][j] > work[j]) {
+                availableState = false;
+            }
+        }
+        if(availableState) {
+            //cout << "Process Available after Completion of process P" << i << ": ";
+            for(int j = 0; j < resourceNum; j++) {
+                work[j] += max[i][j];
+                //cout << work[j] << " ";
+            }
+            //cout << endl;
+            finishedProcesses[i] = true;
+        }
+        else {
+            //cout << "Process: P" << i << " not available for resource allocation. move to next" << endl; 
+        }
 
-    //iterates through processes to find one that can be allocated resources. 
-    //Stops when all proceseses are finished and system is deemed safe.
-    while (finishedCount < processNum) {
-        bool madeProgress = false;
-        for (int p = 0; p < processNum; ++p) {
-            if (finishedProcesses[p]) continue;
-            bool canFinish = true;
-            for (int r = 0; r < resourceNum; ++r) {
-                if (need[p][r] > work[r]) { canFinish = false; break; }
-            }
-            if (canFinish) {
-                // simulate finishing process. release its allocated resources
-                for (int r = 0; r < resourceNum; ++r) {
-                    work[r] += alloc[p][r];
-                }
-                finishedProcesses[p] = true;
-                ++finishedCount;
-                madeProgress = true;
-            }
+        //checks for finished processes. If all processes are finished, the system is in a safe state.
+        //Else, continue running algorithm.
+        int numFinished = 0;
+        for(int j = 0; j < processNum; j++) {
+            if(finishedProcesses[j]) numFinished++;
         }
-        if (!madeProgress) {
-            // if no process could be allocated in a single pass, then system is unsafe.
-            return false;
+        if(numFinished == processNum) {
+            safeState = true;
+            return safeState;
         }
+
+        //increment to next process. Loop through processes if end is reached.
+        i++;
+        if(i > processNum-1) i = 0;
     }
-    // All processes can finish -> safe
-    return true;
+
+    return safeState;
 }
 
 //Adds an additional resource request from a specified process to a given system that is already deemed as safe.
@@ -98,8 +109,7 @@ bool resourceRequest(int processNum, int resourceNum, int available[], vector<ve
     cout << "New Need" << endl;
     for(int i = 0; i < processNum; i++) {
         for(int j = 0; j < resourceNum; j++) {
-            cout << newNeed[i][j];
-            if(j < resourceNum-1) cout << " ";
+            cout << newNeed[i][j] << " ";
         }
         cout << endl;
     }
@@ -126,18 +136,18 @@ void banker(int requestNum, int processNum, int resourceNum, int available[], ve
     }
     //Uses safetyCheck function to check safety of the given system.
     //Outputs the safety of the system to console. 
-    if(safetyCheck(processNum, resourceNum, available, alloc, need)) {
+    if(safetyCheck(processNum, resourceNum, available, max, need)) {
         cout << "Before granting the request of P" 
-        << requestNum << ", the system is in safe state." << endl;
+        << requestNum << ", the system is in a safe state." << endl;
 
         cout << "Simulating granting P" << requestNum << "'s request." << endl;
         
         //checks if the given resource request can be added to the system in a safe manner.
         if(resourceRequest(processNum, resourceNum, available, max, need, request, requestNum, alloc)) {
-            cout <<"P" << requestNum << "'s request can be granted. The system will be in safe state.";
+            cout <<"P" << processNum << "'s request can be granted. The system will be in safe state.";
         }
         else {
-            cout <<"P" << requestNum <<"'s request cannot be granted. The system will be in unsafe state.";
+            cout <<"P" << processNum <<"s request cannot be granted. The system will be in unsafe state.";
         }
     }
 
